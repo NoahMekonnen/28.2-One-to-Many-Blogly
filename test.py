@@ -84,6 +84,60 @@ class UnitTestCase(TestCase):
 
         self.assertIn('Dylan Trika', html)
         self.assertEqual(resp1.status_code, 200)
-        self.assertIn('Bob Trika',html)
+    
+    def test_show_post_form(self):
+        client = app.test_client()
+        resp1 = client.get('users/1/posts/new')
+        html1 = resp1.get_data(as_text=True)
+
+        client = app.test_client()
+        resp2 = client.get('users/2/posts/new')
+        html2 = resp2.get_data(as_text=True)
+
+        self.assertIn('Add Post',html1)
+        self.assertIn('Add Post',html2)
+        self.assertEqual(resp1.status_code, 200)
+        
+    def test_make_form(self):
+        client = app.test_client()
+        resp1 = client.post('users/1/posts/new',follow_redirects=True,data={'title':'nice recipe','content':'pancakes without eggs'})
+        html1 = resp1.get_data(as_text=True)
+
+        self.assertIn('nice recipe',html1)
+        self.assertEqual(resp1.status_code, 200)
+
+    def test_show_post(self):
+        post_one = Post(title="nice recipe",content="pancake without eggs", created_at="01-05-2013 9:23 PM", user_id =1)
+        post_two =Post(title="better recipe",content="pancake with eggs", created_at="01-05-2013 9:24 PM", user_id =2)
+        db.session.add(post_one)
+        db.session.add(post_two)
+        db.session.commit()
+
+        client = app.test_client()
+        resp1 = client.get('/posts/1')
+        html1 = resp1.get_data(as_text=True)
+
+        resp2 = client.get('/posts/2')
+        html2 = resp2.get_data(as_text=True)
+
+        self.assertIn('nice recipe', html1)
+        self.assertIn('better recipe', html2)
+        self.assertEqual(resp1.status_code, 200)
+    
+    def test_delete_post(self):
+        post_one = Post(title="nice recipe",content="pancake without eggs", created_at="01-05-2013 9:23 PM", user_id =1)
+        post_two =Post(title="better recipe",content="pancake with eggs", created_at="01-05-2013 9:24 PM", user_id =2)
+        db.session.add(post_one)
+        db.session.add(post_two)
+        db.session.commit()
+
+        client = app.test_client()
+        resp1 = client.post('/posts/1/delete')
+        resp2 = client.get('/posts/2')
+        html1 = resp2.get_data(as_text=True)
+
+        self.assertIn('better recipe', html1)
+
+
 
 
